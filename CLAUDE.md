@@ -11,13 +11,25 @@ SRS(FSRS)学習・音声再生・統計表示を行う。
 ```
 vocab-app/
 ├── CLAUDE.md                ← このファイル(スキーマと生成ルール)
+├── index.html                ← PWA本体(エントリーポイント)
+├── manifest.json              ← PWAマニフェスト
+├── sw.js                      ← Service Worker(オフラインキャッシュ)
+├── css/
+│   └── style.css             ← 全画面のスタイル
+├── js/
+│   ├── fsrs.js                ← FSRS間隔反復スケジューリング
+│   ├── db.js                  ← IndexedDBラッパー(学習進捗の永続化)
+│   └── app.js                 ← 画面描画・学習フロー・状態管理
+├── icons/                     ← PWAアイコン(icon.svg / icon-maskable.svg が生成元)
 ├── input/
-│   └── word_list.txt        ← 生成対象の単語リスト(1行1単語)
+│   └── word_list.txt         ← 生成対象の単語リスト(1行1単語)
 ├── data/
-│   └── words.json           ← 生成済みカードデータ(PWAが読む)
+│   └── words.json            ← 生成済みカードデータ(PWAが読む)
 └── scripts/
-    └── validate.js          ← スキーマ検証・重複チェック
+    └── validate.js           ← スキーマ検証・重複チェック
 ```
+
+PWA本体は `index.html` を起点に `data/words.json` を `fetch` で読み込み、学習進捗は IndexedDB に保存する。オフラインでも動作するよう `sw.js` がアプリシェルと単語データをキャッシュする。ローカル確認には `fetch`/Service Worker が動く簡易HTTPサーバーが必要(例: `python3 -m http.server` を `vocab-app/` 直下で実行し `http://localhost:8000` を開く)。
 
 ## カードスキーマ
 
