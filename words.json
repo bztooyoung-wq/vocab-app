@@ -1,0 +1,77 @@
+[
+  {
+    "id": "reimburse",
+    "word": "reimburse",
+    "pos": "verb",
+    "pronunciation": "/ˌriːɪmˈbɜːrs/",
+    "meaning_ja": "〜に払い戻す、返済する",
+    "meaning_en": "to pay back money to someone who has spent it for you",
+    "examples": [
+      {
+        "en": "The company will reimburse employees for travel expenses within two weeks.",
+        "ja": "会社は2週間以内に従業員へ出張費を払い戻します。"
+      },
+      {
+        "en": "Please keep your receipts so we can reimburse you for the workshop fee.",
+        "ja": "講習会費を払い戻せるよう、領収書を保管しておいてください。"
+      }
+    ],
+    "synonyms": ["repay", "refund", "compensate"],
+    "collocations": ["reimburse expenses", "fully reimbursed", "reimburse A for B"],
+    "emoji": "💴🔙",
+    "icon": "receipt",
+    "svg": null,
+    "level": 2,
+    "tags": ["finance", "office"]
+  },
+  {
+    "id": "comply",
+    "word": "comply",
+    "pos": "verb",
+    "pronunciation": "/kəmˈplaɪ/",
+    "meaning_ja": "(規則・要求に)従う、応じる",
+    "meaning_en": "to act according to a rule, request, or law",
+    "examples": [
+      {
+        "en": "All vendors must comply with the new safety regulations by March.",
+        "ja": "すべての業者は3月までに新しい安全規則に従わなければなりません。"
+      },
+      {
+        "en": "Failure to comply with the contract terms may result in penalties.",
+        "ja": "契約条件に従わない場合、罰則が科される可能性があります。"
+      }
+    ],
+    "synonyms": ["obey", "follow", "conform"],
+    "collocations": ["comply with regulations", "fail to comply", "comply fully"],
+    "emoji": "✅📋",
+    "icon": "clipboard-check",
+    "svg": null,
+    "level": 2,
+    "tags": ["contract", "office"]
+  },
+  {
+    "id": "warehouse",
+    "word": "warehouse",
+    "pos": "noun",
+    "pronunciation": "/ˈwerhaʊs/",
+    "meaning_ja": "倉庫、貯蔵庫",
+    "meaning_en": "a large building where goods are stored before they are sold or shipped",
+    "examples": [
+      {
+        "en": "The new warehouse can store twice as many products as the old one.",
+        "ja": "新しい倉庫は旧倉庫の2倍の製品を保管できます。"
+      },
+      {
+        "en": "All orders are shipped directly from our warehouse in Osaka.",
+        "ja": "すべての注文は大阪の倉庫から直接発送されます。"
+      }
+    ],
+    "synonyms": ["storehouse", "depot", "storage facility"],
+    "collocations": ["warehouse worker", "distribution warehouse", "warehouse inventory"],
+    "emoji": "🏭📦",
+    "icon": "warehouse",
+    "svg": "<svg viewBox=\"0 0 64 64\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 26 L32 10 L56 26 V54 H8 Z\"/><path d=\"M18 54 V34 H46 V54\"/><path d=\"M18 44 H46\"/><path d=\"M32 34 V54\"/></svg>",
+    "level": 1,
+    "tags": ["logistics"]
+  }
+]

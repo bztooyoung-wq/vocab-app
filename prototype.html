@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>GOI — TOEIC単語トレーナー</title>
+<style>
+  :root{
+    --paper:#F2F4F1; --card:#FFFFFF; --ink:#1B2432; --ink-soft:#5A6475;
+    --ai:#2D5DA1; --ai-deep:#1E4074; --ai-wash:#E3EBF6;
+    --ok:#2E7D5B; --ok-wash:#E2F0E9;
+    --ng:#C4452F; --ng-wash:#F8E7E2;
+    --hard:#B07C24; --hard-wash:#F5EDDC;
+    --line:#DDE2E0;
+    --serif:'Iowan Old Style','Palatino Linotype',Georgia,'Times New Roman',serif;
+    --sans:system-ui,-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+    display:flex;justify-content:center;min-height:100vh}
+  #app{width:100%;max-width:430px;display:flex;flex-direction:column;min-height:100vh;
+    padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+
+  /* header */
+  header{padding:18px 20px 10px;display:flex;align-items:baseline;justify-content:space-between}
+  .brand{font-family:var(--serif);font-size:26px;font-weight:700;letter-spacing:.02em}
+  .brand span{color:var(--ai)}
+  .brand small{font-family:var(--sans);font-size:11px;font-weight:600;color:var(--ink-soft);
+    letter-spacing:.14em;margin-left:8px}
+  .streak{font-size:13px;font-weight:700;color:var(--ai-deep);background:var(--ai-wash);
+    border-radius:99px;padding:4px 12px}
+
+  main{flex:1;padding:6px 16px 16px;display:flex;flex-direction:column}
+  .screen{display:none;flex:1;flex-direction:column}
+  .screen.active{display:flex}
+
+  /* progress */
+  .prog-row{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+  .prog-bar{flex:1;height:6px;background:var(--line);border-radius:99px;overflow:hidden}
+  .prog-fill{height:100%;background:var(--ai);border-radius:99px;transition:width .3s}
+  .prog-num{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+
+  /* mode switch */
+  .mode-switch{display:flex;background:var(--card);border:1px solid var(--line);
+    border-radius:99px;padding:3px;margin-bottom:12px}
+  .mode-btn{flex:1;border:none;background:none;border-radius:99px;padding:7px 0;
+    font-size:12px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:var(--sans)}
+  .mode-btn.active{background:var(--ai);color:#fff}
+
+  /* quiz (金フレ式) */
+  .quiz-ja{font-size:21px;font-weight:800;line-height:1.4;margin-bottom:18px}
+  .quiz-en{font-family:var(--serif);font-size:20px;line-height:1.55;color:var(--ink)}
+  .quiz-en .blank{display:inline-block;min-width:96px;border-bottom:2.5px solid var(--ai);
+    color:var(--ai);font-weight:700;text-align:center;font-family:var(--sans);font-size:15px}
+  .hint-btn{border:none;background:var(--paper);border:1px solid var(--line);color:var(--ink-soft);
+    font-size:12px;font-weight:700;border-radius:99px;padding:7px 14px;cursor:pointer;
+    font-family:var(--sans);margin-top:14px}
+  .listen-icon{font-size:56px;margin-bottom:12px}
+  .listen-note{font-size:13px;color:var(--ink-soft);line-height:1.6}
+  .answer-word{font-family:var(--serif);font-size:34px;font-weight:700;color:var(--ai-deep);
+    text-align:center;margin-bottom:2px}
+  .answer-pron{font-family:var(--mono);font-size:13px;color:var(--ink-soft);text-align:center;
+    margin-bottom:12px}
+
+  /* card */
+  .flashcard{background:var(--card);border-radius:20px;border:1px solid var(--line);
+    box-shadow:0 8px 24px rgba(27,36,50,.07);padding:28px 22px;flex:1;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;cursor:pointer;position:relative;overflow:hidden;min-height:340px}
+  .card-tag{position:absolute;top:14px;left:16px;font-size:10px;font-weight:700;
+    letter-spacing:.12em;color:var(--ink-soft);text-transform:uppercase}
+  .card-tag.new{color:var(--ai)}
+  .card-emoji{font-size:64px;line-height:1;margin-bottom:14px;
+    filter:drop-shadow(0 4px 10px rgba(27,36,50,.12))}
+  .card-word{font-family:var(--serif);font-size:44px;font-weight:700;line-height:1.05;
+    letter-spacing:-.01em;word-break:break-word}
+  .card-pron{font-family:var(--mono);font-size:14px;color:var(--ink-soft);margin-top:8px}
+  .card-pos{display:inline-block;font-size:11px;font-weight:700;color:var(--ai-deep);
+    background:var(--ai-wash);border-radius:6px;padding:2px 8px;margin-top:10px;letter-spacing:.06em}
+  .speak-btn{margin-top:16px;border:1.5px solid var(--ai);background:var(--card);color:var(--ai);
+    font-size:14px;font-weight:700;border-radius:99px;padding:9px 20px;cursor:pointer;font-family:var(--sans)}
+  .speak-btn:active{background:var(--ai-wash)}
+  .tap-hint{position:absolute;bottom:14px;font-size:11px;color:var(--ink-soft);letter-spacing:.08em}
+
+  /* back of card */
+  .card-back{display:none;width:100%;text-align:left}
+  .flashcard.revealed .card-front-extra{display:none}
+  .flashcard.revealed .card-back{display:block}
+  .flashcard.revealed{justify-content:flex-start;cursor:default;overflow-y:auto}
+  .back-head{display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--ink);
+    padding-bottom:12px;margin-bottom:14px}
+  .back-emoji{font-size:36px}
+  .back-word{font-family:var(--serif);font-size:28px;font-weight:700}
+  .back-pron{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .meaning-ja{font-size:19px;font-weight:700;margin-bottom:4px}
+  .meaning-en{font-size:13px;color:var(--ink-soft);margin-bottom:14px;line-height:1.5}
+  .sect{font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--ai-deep);
+    text-transform:uppercase;margin:12px 0 6px}
+  .example{border-left:3px solid var(--ai-wash);padding-left:10px;margin-bottom:10px}
+  .example .en{font-family:var(--serif);font-size:14.5px;line-height:1.45}
+  .example .en b{color:var(--ai-deep)}
+  .example .ja{font-size:12px;color:var(--ink-soft);margin-top:3px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:12px;background:var(--paper);border:1px solid var(--line);
+    border-radius:99px;padding:4px 10px}
+
+  /* rating */
+  .rating{display:none;gap:8px;margin-top:14px}
+  .rating.show{display:flex}
+  .rate-btn{flex:1;border:none;border-radius:14px;padding:12px 4px 10px;cursor:pointer;
+    font-family:var(--sans);display:flex;flex-direction:column;align-items:center;gap:2px}
+  .rate-btn b{font-size:14px}
+  .rate-btn small{font-family:var(--mono);font-size:10px;opacity:.75}
+  .rate-again{background:var(--ng-wash);color:var(--ng)}
+  .rate-hard{background:var(--hard-wash);color:var(--hard)}
+  .rate-good{background:var(--ai-wash);color:var(--ai-deep)}
+  .rate-easy{background:var(--ok-wash);color:var(--ok)}
+  .rate-btn:active{transform:scale(.96)}
+
+  /* done state */
+  .done-box{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;gap:10px}
+  .done-box .big{font-size:56px}
+  .done-box h2{font-family:var(--serif);font-size:24px}
+  .done-box p{font-size:13px;color:var(--ink-soft)}
+  .primary-btn{margin-top:10px;background:var(--ai);color:#fff;border:none;border-radius:99px;
+    padding:12px 26px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--sans)}
+
+  /* stats */
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .stat-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+  .stat-card .num{font-family:var(--serif);font-size:30px;font-weight:700;color:var(--ai-deep)}
+  .stat-card .lbl{font-size:11px;color:var(--ink-soft);font-weight:600;margin-top:2px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:16px;margin-bottom:12px}
+  .panel h3{font-size:12px;font-weight:800;letter-spacing:.1em;color:var(--ink-soft);
+    text-transform:uppercase;margin-bottom:12px}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:90px}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;
+    justify-content:flex-end}
+  .bar{width:100%;background:var(--ai);border-radius:5px 5px 0 0;min-height:2px;transition:height .4s}
+  .bar-col small{font-size:9px;color:var(--ink-soft);font-family:var(--mono)}
+  .heat{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .heat-cell{aspect-ratio:1;border-radius:4px;background:var(--line)}
+  .heat-cell.h1{background:#BBD0EA}.heat-cell.h2{background:#7FA4D3}
+  .heat-cell.h3{background:var(--ai)}.heat-cell.h4{background:var(--ai-deep)}
+  .state-row{display:flex;height:12px;border-radius:99px;overflow:hidden;margin-bottom:8px}
+  .state-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--ink-soft)}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:99px;margin-right:4px}
+
+  /* word list */
+  .search{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 14px;
+    font-size:14px;font-family:var(--sans);background:var(--card);margin-bottom:10px;color:var(--ink)}
+  .search:focus{outline:2px solid var(--ai);border-color:transparent}
+  .word-item{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+  .wi-emoji{font-size:24px;width:32px;text-align:center}
+  .wi-main{flex:1;min-width:0}
+  .wi-word{font-family:var(--serif);font-size:16px;font-weight:700}
+  .wi-mean{font-size:12px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .badge{font-size:10px;font-weight:700;border-radius:6px;padding:3px 7px;white-space:nowrap}
+  .b-new{background:var(--ai-wash);color:var(--ai-deep)}
+  .b-learn{background:var(--hard-wash);color:var(--hard)}
+  .b-review{background:var(--ok-wash);color:var(--ok)}
+
+  /* tabs */
+  nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;
+    background:var(--card);border-top:1px solid var(--line);display:flex;
+    padding-bottom:env(safe-area-inset-bottom)}
+  .tab{flex:1;border:none;background:none;padding:10px 0 8px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--ink-soft);font-family:var(--sans)}
+  .tab.active{color:var(--ai-deep)}
+  .tab .ico{font-size:20px}
+  .tab small{font-size:10px;font-weight:700}
+  .save-note{font-size:10px;color:var(--ink-soft);text-align:center;margin-top:8px}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand">GOI<span>.</span><small>TOEIC 900</small></div>
+    <div class="streak" id="streakBadge">🔥 0日</div>
+  </header>
+
+  <main>
+    <!-- 学習 -->
+    <section class="screen active" id="scr-study">
+      <div class="prog-row">
+        <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+        <div class="prog-num" id="progNum">0 / 0</div>
+      </div>
+      <div class="mode-switch" id="modeSwitch">
+        <button class="mode-btn active" data-m="kinfure">金フレ式</button>
+        <button class="mode-btn" data-m="listen">リスニング</button>
+        <button class="mode-btn" data-m="card">単語カード</button>
+      </div>
+      <div id="studyArea"></div>
+    </section>
+
+    <!-- 統計 -->
+    <section class="screen" id="scr-stats">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="num" id="stToday">0</div><div class="lbl">今日の学習</div></div>
+        <div class="stat-card"><div class="num" id="stAcc">–</div><div class="lbl">今日の正答率</div></div>
+        <div class="stat-card"><div class="num" id="stTotal">0</div><div class="lbl">累計レビュー</div></div>
+        <div class="stat-card"><div class="num" id="stKnown">0</div><div class="lbl">復習フェーズの語</div></div>
+      </div>
+      <div class="panel">
+        <h3>直近7日のレビュー数</h3>
+        <div class="bars" id="weekBars"></div>
+      </div>
+      <div class="panel">
+        <h3>習得状況</h3>
+        <div class="state-row" id="stateRow"></div>
+        <div class="state-legend">
+          <span><span class="dot" style="background:var(--line)"></span>未着手</span>
+          <span><span class="dot" style="background:var(--hard)"></span>学習中</span>
+          <span><span class="dot" style="background:var(--ok)"></span>復習</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>学習ヒートマップ(5週)</h3>
+        <div class="heat" id="heatGrid"></div>
+      </div>
+    </section>
+
+    <!-- 単語帳 -->
+    <section class="screen" id="scr-list">
+      <input class="search" id="searchBox" type="search" placeholder="単語・意味で検索">
+      <div id="wordList"></div>
+    </section>
+  </main>
+
+  <nav>
+    <button class="tab active" data-scr="study"><span class="ico">📖</span><small>学習</small></button>
+    <button class="tab" data-scr="stats"><span class="ico">📊</span><small>統計</small></button>
+    <button class="tab" data-scr="list"><span class="ico">🗂️</span><small>単語帳</small></button>
+  </nav>
+</div>
+
+<script>
+/* ================= サンプルカードデータ(本番は data/words.json を読み込む) ================= */
+const CARDS = [
+ {id:"reimburse",word:"reimburse",pos:"verb",pron:"/ˌriːɪmˈbɜːrs/",ja:"〜に払い戻す、返済する",en:"to pay back money someone has spent for you",ex:[["The company will <b>reimburse</b> employees for travel expenses.","会社は従業員に出張費を払い戻します。"],["Keep your receipts to be <b>reimbursed</b> later.","後で払い戻しを受けるため領収書を保管してください。"]],syn:["repay","refund","compensate"],emoji:"💴🔙"},
+ {id:"comply",word:"comply",pos:"verb",pron:"/kəmˈplaɪ/",ja:"(規則・要求に)従う、応じる",en:"to act according to a rule or request",ex:[["All vendors must <b>comply</b> with the new regulations.","すべての業者は新しい規則に従わなければなりません。"],["Failure to <b>comply</b> may result in penalties.","従わない場合は罰則の可能性があります。"]],syn:["obey","follow","conform"],emoji:"✅📋"},
+ {id:"warehouse",word:"warehouse",pos:"noun",pron:"/ˈwerhaʊs/",ja:"倉庫、貯蔵庫",en:"a large building where goods are stored",ex:[["The new <b>warehouse</b> can store twice as many products.","新しい倉庫は2倍の製品を保管できます。"],["Orders ship directly from our <b>warehouse</b> in Osaka.","注文は大阪の倉庫から直接発送されます。"]],syn:["storehouse","depot"],emoji:"🏭📦"},
+ {id:"itinerary",word:"itinerary",pos:"noun",pron:"/aɪˈtɪnəreri/",ja:"旅程(表)、旅行計画",en:"a detailed plan of a journey",ex:[["I emailed you the <b>itinerary</b> for the Boston trip.","ボストン出張の旅程をメールしました。"],["The <b>itinerary</b> includes a factory tour on Tuesday.","旅程には火曜の工場見学が含まれます。"]],syn:["schedule","travel plan"],emoji:"🗺️✈️"},
+ {id:"quarterly",word:"quarterly",pos:"adjective",pron:"/ˈkwɔːrtərli/",ja:"四半期ごとの、年4回の",en:"happening four times a year",ex:[["The <b>quarterly</b> report shows strong sales growth.","四半期報告書は好調な売上成長を示しています。"],["We hold <b>quarterly</b> reviews with each client.","各クライアントと四半期レビューを行います。"]],syn:["three-monthly"],emoji:"📅4️⃣"},
+ {id:"merger",word:"merger",pos:"noun",pron:"/ˈmɜːrdʒər/",ja:"(企業の)合併",en:"the joining of two companies into one",ex:[["The <b>merger</b> created the largest firm in the industry.","その合併で業界最大の企業が誕生しました。"],["Shareholders approved the <b>merger</b> last week.","株主は先週その合併を承認しました。"]],syn:["consolidation","union"],emoji:"🤝🏢"},
+ {id:"applicant",word:"applicant",pos:"noun",pron:"/ˈæplɪkənt/",ja:"応募者、志願者",en:"a person who formally applies for something",ex:[["Each <b>applicant</b> must submit two references.","各応募者は推薦状を2通提出してください。"],["We interviewed twelve <b>applicants</b> for the position.","その職には12名の応募者を面接しました。"]],syn:["candidate"],emoji:"🙋📄"},
+ {id:"inventory",word:"inventory",pos:"noun",pron:"/ˈɪnvəntɔːri/",ja:"在庫(品)、棚卸し",en:"all the goods a store or company has",ex:[["We check <b>inventory</b> at the end of every month.","毎月末に在庫を確認します。"],["The item is currently out of <b>inventory</b>.","その商品は現在在庫切れです。"]],syn:["stock","goods"],emoji:"📦🔢"},
+ {id:"negotiate",word:"negotiate",pos:"verb",pron:"/nɪˈɡoʊʃieɪt/",ja:"交渉する、取り決める",en:"to discuss in order to reach an agreement",ex:[["We are <b>negotiating</b> a better price with the supplier.","仕入先とより良い価格を交渉中です。"],["She <b>negotiated</b> a two-year contract extension.","彼女は2年の契約延長を取り決めました。"]],syn:["bargain","mediate"],emoji:"🤝💼"},
+ {id:"shipment",word:"shipment",pos:"noun",pron:"/ˈʃɪpmənt/",ja:"発送、積み荷",en:"goods sent from one place to another",ex:[["The <b>shipment</b> will arrive on Thursday morning.","荷物は木曜午前に到着予定です。"],["A delay in the <b>shipment</b> affected our schedule.","発送の遅れが日程に影響しました。"]],syn:["delivery","cargo"],emoji:"🚢📦"},
+ {id:"invoice",word:"invoice",pos:"noun",pron:"/ˈɪnvɔɪs/",ja:"請求書、送り状",en:"a list of goods or services with the price to pay",ex:[["Please pay the <b>invoice</b> within 30 days.","請求書は30日以内にお支払いください。"],["The <b>invoice</b> number is printed at the top.","請求書番号は上部に印字されています。"]],syn:["bill","statement"],emoji:"🧾💰"},
+ {id:"deadline",word:"deadline",pos:"noun",pron:"/ˈdedlaɪn/",ja:"締め切り、期限",en:"the latest time by which something must be done",ex:[["The <b>deadline</b> for submissions is Friday at noon.","提出期限は金曜の正午です。"],["We met the <b>deadline</b> despite the system trouble.","システム障害にもかかわらず期限に間に合いました。"]],syn:["due date","time limit"],emoji:"⏰📌"},
+ {id:"recruit",word:"recruit",pos:"verb",pron:"/rɪˈkruːt/",ja:"採用する、募集する",en:"to find new people to join a company",ex:[["We plan to <b>recruit</b> five engineers this year.","今年はエンジニアを5名採用する予定です。"],["The firm <b>recruits</b> mainly through referrals.","その会社は主に紹介で採用しています。"]],syn:["hire","enlist"],emoji:"🧲🙋"},
+ {id:"refund",word:"refund",pos:"noun",pron:"/ˈriːfʌnd/",ja:"返金、払い戻し",en:"money given back when you return something",ex:[["You can request a full <b>refund</b> within 14 days.","14日以内なら全額返金を請求できます。"],["The <b>refund</b> was processed to your card.","返金はカードに処理されました。"]],syn:["repayment","reimbursement"],emoji:"💳↩️"},
+ {id:"lucrative",word:"lucrative",pos:"adjective",pron:"/ˈluːkrətɪv/",ja:"もうかる、利益の大きい",en:"producing a lot of money or profit",ex:[["They signed a <b>lucrative</b> deal with a retailer.","彼らは小売業者と有利な契約を結びました。"],["Consulting proved to be a <b>lucrative</b> business.","コンサルティングは利益の大きい事業だと分かりました。"]],syn:["profitable","rewarding"],emoji:"💰📈"},
+ {id:"meticulous",word:"meticulous",pos:"adjective",pron:"/məˈtɪkjələs/",ja:"細心の、極めて注意深い",en:"very careful with every small detail",ex:[["She keeps <b>meticulous</b> records of all expenses.","彼女は全経費の綿密な記録をつけています。"],["The audit requires <b>meticulous</b> preparation.","監査には細心の準備が必要です。"]],syn:["thorough","precise"],emoji:"🔍✍️"},
+ {id:"attrition",word:"attrition",pos:"noun",pron:"/əˈtrɪʃn/",ja:"自然減、離職による人員減",en:"a gradual reduction in staff as people leave",ex:[["Staff <b>attrition</b> rose after the reorganization.","組織再編後、離職による人員減が増えました。"],["We will cut costs through natural <b>attrition</b>.","自然減によってコストを削減します。"]],syn:["turnover","wearing down"],emoji:"🚪📉"},
+ {id:"severance",word:"severance",pos:"noun",pron:"/ˈsevərəns/",ja:"退職手当、解雇",en:"money paid to an employee who is dismissed",ex:[["Laid-off workers received a <b>severance</b> package.","解雇された従業員は退職手当を受け取りました。"],["<b>Severance</b> pay equals one month per year served.","退職手当は勤続1年につき1か月分です。"]],syn:["termination pay"],emoji:"✂️💼"},
+ {id:"benchmark",word:"benchmark",pos:"noun",pron:"/ˈbentʃmɑːrk/",ja:"基準、指標",en:"a standard used to compare things",ex:[["Our response time beats the industry <b>benchmark</b>.","当社の応答時間は業界基準を上回ります。"],["The survey sets a <b>benchmark</b> for future studies.","その調査は今後の研究の基準となります。"]],syn:["standard","yardstick"],emoji:"📏🎯"},
+ {id:"expedite",word:"expedite",pos:"verb",pron:"/ˈekspədaɪt/",ja:"迅速に処理する、早める",en:"to make a process happen more quickly",ex:[["We can <b>expedite</b> shipping for an extra fee.","追加料金で発送を早めることができます。"],["Please <b>expedite</b> the approval of this request.","この申請の承認を迅速にお願いします。"]],syn:["accelerate","hasten"],emoji:"⚡📦"},
+ {id:"amenity",word:"amenity",pos:"noun",pron:"/əˈmenəti/",ja:"設備、快適さを提供するもの",en:"a useful or pleasant facility in a place",ex:[["The hotel's <b>amenities</b> include a gym and pool.","ホテルの設備にはジムとプールがあります。"],["Guests praised the room's modern <b>amenities</b>.","宿泊客は客室の最新設備を称賛しました。"]],syn:["facility","convenience"],emoji:"🏨🛁"},
+ {id:"discrepancy",word:"discrepancy",pos:"noun",pron:"/dɪˈskrepənsi/",ja:"食い違い、不一致",en:"a difference between things that should match",ex:[["We found a <b>discrepancy</b> in the sales figures.","売上数値に食い違いが見つかりました。"],["Report any <b>discrepancy</b> between the invoice and order.","請求書と注文の不一致は報告してください。"]],syn:["inconsistency","gap"],emoji:"⚖️❓"},
+ {id:"tentative",word:"tentative",pos:"adjective",pron:"/ˈtentətɪv/",ja:"仮の、暫定的な",en:"not certain or fixed yet",ex:[["We set a <b>tentative</b> date for the launch.","発売の仮の日程を設定しました。"],["The agenda is still <b>tentative</b> and may change.","議題はまだ暫定で変更の可能性があります。"]],syn:["provisional","preliminary"],emoji:"📝❔"},
+ {id:"unanimous",word:"unanimous",pos:"adjective",pron:"/juˈnænɪməs/",ja:"全会一致の、満場一致の",en:"agreed by everyone",ex:[["The board reached a <b>unanimous</b> decision.","取締役会は全会一致の決定に達しました。"],["Support for the proposal was <b>unanimous</b>.","その提案への支持は満場一致でした。"]],syn:["undivided","united"],emoji:"🙌✅"},
+ {id:"procure",word:"procure",pos:"verb",pron:"/prəˈkjʊr/",ja:"調達する、入手する",en:"to obtain something, especially with effort",ex:[["We <b>procure</b> raw materials from three suppliers.","原材料を3社の仕入先から調達しています。"],["The team <b>procured</b> funding for the project.","チームはプロジェクトの資金を調達しました。"]],syn:["obtain","source"],emoji:"🛒🏭"}
+];
+
+/* ================= FSRS(簡易実装・デフォルトパラメータ) ================= */
+const W=[0.4872,1.4003,3.7145,13.8206,5.1618,1.2298,0.8975,0.031,1.6474,0.1367,1.0461,2.1072,0.0793,0.3246,1.587,0.2272,2.8755];
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const initS=g=>W[g-1];
+const initD=g=>clamp(W[4]-(g-3)*W[5],1,10);
+function nextD(d,g){const nd=d-W[6]*(g-3);return clamp(W[7]*initD(4)+(1-W[7])*nd,1,10);}
+function retr(t,s){return Math.pow(1+t/(9*s),-1);}
+function nextS(d,s,r,g){
+  if(g===1){return clamp(W[11]*Math.pow(d,-W[12])*(Math.pow(s+1,W[13])-1)*Math.exp(W[14]*(1-r)),0.1,s);}
+  let mod=Math.exp(W[8])*(11-d)*Math.pow(s,-W[9])*(Math.exp(W[10]*(1-r))-1);
+  if(g===2)mod*=W[15]; if(g===4)mod*=W[16];
+  return s*(1+mod);
+}
+function schedule(cs,g,now){
+  const t=cs.due?Math.max(0,(now-cs.lastReview)/86400000):0;
+  let d,s;
+  if(!cs.reps){d=initD(g);s=initS(g);}
+  else{const r=retr(t,cs.stability);d=nextD(cs.difficulty,g);s=nextS(cs.difficulty,cs.stability,r,g);}
+  let ivl;
+  if(g===1)ivl=0;                       // 同セッション内で再出題
+  else if(!cs.reps&&g===2)ivl=0.5;      // 12時間後
+  else ivl=Math.max(1,Math.round(s));   // R=0.9 目安 → 安定度日数
+  return {difficulty:d,stability:s,reps:(cs.reps||0)+1,lapses:(cs.lapses||0)+(g===1?1:0),
+    lastReview:now,due:now+ivl*86400000,state:g===1?"learning":(cs.reps?"review":"learning")};
+}
+function previewIvl(cs,g){
+  const r=schedule(cs,g,Date.now());const d=(r.due-Date.now())/86400000;
+  if(d<0.02)return"すぐ";if(d<1)return Math.round(d*24)+"h";
+  if(d<30)return Math.round(d)+"d";return(d/30).toFixed(1)+"mo";
+}
+
+/* ================= 状態管理(window.storage / メモリフォールバック) ================= */
+const KEY="goi-proto-v1";
+let state={cards:{},log:{}};          // log: {"YYYY-MM-DD":{n:回数,ok:正解数}}
+let storageOk=false;
+const today=()=>new Date().toISOString().slice(0,10);
+async function loadState(){
+  try{const r=await window.storage.get(KEY);
+    if(r&&r.value){state=JSON.parse(r.value);}storageOk=true;
+  }catch(e){storageOk=(typeof window.storage!=="undefined");}
+}
+async function saveState(){
+  if(!storageOk)return;
+  try{await window.storage.set(KEY,JSON.stringify(state));}catch(e){}
+}
+
+/* ================= 学習キュー ================= */
+const NEW_PER_DAY=10;
+let queue=[],sessionTotal=0,current=null,revealed=false;
+function buildQueue(){
+  const now=Date.now();
+  const due=CARDS.filter(c=>state.cards[c.id]&&state.cards[c.id].due<=now)
+    .sort((a,b)=>state.cards[a.id].due-state.cards[b.id].due);
+  const newIntroduced=(state.log[today()]&&state.log[today()].newN)||0;
+  const news=CARDS.filter(c=>!state.cards[c.id]).slice(0,Math.max(0,NEW_PER_DAY-newIntroduced));
+  queue=[...due,...news];sessionTotal=queue.length;
+}
+
+/* ================= 音声 ================= */
+function speak(text){
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="en-US";u.rate=0.92;
+    const v=speechSynthesis.getVoices().find(v=>v.lang.startsWith("en"));
+    if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ================= 学習画面 ================= */
+const $=s=>document.querySelector(s);
+function renderStudy(){
+  const area=$("#studyArea");
+  $("#progNum").textContent=(sessionTotal-queue.length)+" / "+sessionTotal;
+  $("#progFill").style.width=sessionTotal?((sessionTotal-queue.length)/sessionTotal*100)+"%":"0%";
+  if(!queue.length){
+    const done=state.log[today()]?state.log[today()].n:0;
+    area.innerHTML=`<div class="done-box">
+      <div class="big">${done?"🎉":"🌅"}</div>
+      <h2>${done?"本日の学習完了!":"今日の学習を始めよう"}</h2>
+      <p>${done?`今日は ${done} 回レビューしました。<br>また明日、期日のカードが待っています。`:"新規カードを読み込みます。"}</p>
+      <button class="primary-btn" onclick="restartSession()">キューを再確認</button>
+      <div class="save-note">${storageOk?"✓ 進捗は自動保存されます":"⚠ この環境では進捗はセッション内のみ保持"}</div>
+    </div>`;
+    return;
+  }
+  current=queue[0];revealed=false;
+  const cs=state.cards[current.id]||{};
+  const isNew=!cs.reps;
+  const exPair=pickEx(current,cs);          // レビュー回数で例文をローテーション
+  const exPlain=plainEn(exPair[0]);
+  let front="";
+  if(mode==="kinfure"){
+    front=`
+      <div class="card-front-extra" style="width:100%;text-align:left">
+        <div class="quiz-ja">${exPair[1]}</div>
+        <div class="quiz-en">${blankEn(exPair[0])}</div>
+        <div style="text-align:center">
+          <button class="speak-btn" onclick="event.stopPropagation();speak('${escQ(exPlain)}')">🔊 例文を聞いて想起</button>
+          <button class="hint-btn" id="hintBtn"
+            onclick="event.stopPropagation();this.textContent='💡 ${current.word[0]}... (${current.word.length}文字)'">💡 頭文字ヒント</button>
+        </div>
+      </div>`;
+  }else if(mode==="listen"){
+    front=`
+      <div class="card-front-extra" style="text-align:center">
+        <div class="listen-icon">🎧</div>
+        <div class="listen-note">音声を聞いて、<br>キーワードとその意味を思い出してください</div>
+        <button class="speak-btn" onclick="event.stopPropagation();speak('${escQ(exPlain)}')">🔊 もう一度聞く</button>
+      </div>`;
+  }else{
+    front=`
+      <div class="card-front-extra">
+        <div class="card-emoji">${current.emoji}</div>
+      </div>
+      <div class="card-front-extra">
+        <div class="card-word">${current.word}</div>
+        <div class="card-pron">${current.pron}</div>
+        <div><span class="card-pos">${current.pos}</span></div>
+        <button class="speak-btn" onclick="event.stopPropagation();speak('${escQ(current.word)}')">🔊 発音を聞く</button>
+      </div>`;
+  }
+  area.innerHTML=`
+    <div class="flashcard" id="fc" onclick="reveal()">
+      <div class="card-tag ${isNew?"new":""}">${isNew?"NEW":"REVIEW"}</div>
+      ${front}
+      <div class="card-back">
+        <div class="answer-word">${current.word}</div>
+        <div class="answer-pron">${current.pron} · ${current.pos} <span style="margin-left:4px">${current.emoji}</span></div>
+        <div class="meaning-ja" style="text-align:center;border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:14px">${current.ja}</div>
+        <div class="meaning-en">${current.en}</div>
+        <div class="sect">例文</div>
+        ${current.ex.map(e=>`<div class="example"><div class="en">${e[0]}
+          <button class="speak-btn" style="padding:2px 10px;font-size:11px;margin:0 0 0 6px"
+           onclick="event.stopPropagation();speak('${e[0].replace(/<[^>]+>/g,"").replace(/'/g,"\\'")}')">🔊</button></div>
+          <div class="ja">${e[1]}</div></div>`).join("")}
+        <div class="sect">類義語</div>
+        <div class="chips">${current.syn.map(s=>`<span class="chip">${s}</span>`).join("")}</div>
+      </div>
+      <div class="tap-hint" id="tapHint">${mode==="card"?"タップして意味を表示":"思い出したらタップして答え合わせ"}</div>
+    </div>
+    <div class="rating" id="rating">
+      <button class="rate-btn rate-again" onclick="rate(1)"><b>もう一度</b><small>${previewIvl(cs,1)}</small></button>
+      <button class="rate-btn rate-hard" onclick="rate(2)"><b>難しい</b><small>${previewIvl(cs,2)}</small></button>
+      <button class="rate-btn rate-good" onclick="rate(3)"><b>普通</b><small>${previewIvl(cs,3)}</small></button>
+      <button class="rate-btn rate-easy" onclick="rate(4)"><b>簡単</b><small>${previewIvl(cs,4)}</small></button>
+    </div>`;
+  if(mode==="listen")setTimeout(()=>speak(exPlain),350);   // リスニングは自動再生
+}
+function reveal(){
+  if(revealed)return;revealed=true;
+  $("#fc").classList.add("revealed");
+  $("#rating").classList.add("show");
+  $("#tapHint").style.display="none";
+  // 単語 → 例文全文の順で読み上げ(音声で記憶を定着)
+  const ex=plainEn(pickEx(current,state.cards[current.id]||{})[0]);
+  speak(current.word+". "+ex);
+}
+/* ---- モード用ヘルパー ---- */
+let mode="kinfure";
+function pickEx(c,cs){return c.ex[((cs&&cs.reps)||0)%c.ex.length];}
+function plainEn(html){return html.replace(/<[^>]+>/g,"");}
+function blankEn(html){return html.replace(/<b>[^<]*<\/b>/,'<span class="blank">?</span>');}
+function escQ(s){return s.replace(/'/g,"\\'");}
+document.querySelectorAll(".mode-btn").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".mode-btn").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");mode=b.dataset.m;renderStudy();
+  if(mode==="listen"&&current)speak(plainEn(pickEx(current,state.cards[current.id]||{})[0]));
+}));
+async function rate(g){
+  const now=Date.now();
+  const prev=state.cards[current.id]||{};
+  const wasNew=!prev.reps;
+  state.cards[current.id]=schedule(prev,g,now);
+  const d=today();
+  if(!state.log[d])state.log[d]={n:0,ok:0,newN:0};
+  state.log[d].n++;if(g>=3)state.log[d].ok++;
+  if(wasNew)state.log[d].newN=(state.log[d].newN||0)+1;
+  queue.shift();
+  if(g===1){queue.splice(Math.min(3,queue.length),0,current);sessionTotal++;}
+  await saveState();
+  renderStudy();renderHeader();
+}
+function restartSession(){buildQueue();renderStudy();}
+
+/* ================= 統計画面 ================= */
+function renderHeader(){
+  let streak=0;const d=new Date();
+  for(;;){const k=d.toISOString().slice(0,10);
+    if(state.log[k]&&state.log[k].n>0){streak++;d.setDate(d.getDate()-1);}
+    else if(k===today()){d.setDate(d.getDate()-1);}   // 今日未学習でも昨日から数える
+    else break;}
+  $("#streakBadge").textContent="🔥 "+streak+"日";
+}
+function renderStats(){
+  const t=state.log[today()]||{n:0,ok:0};
+  $("#stToday").textContent=t.n;
+  $("#stAcc").textContent=t.n?Math.round(t.ok/t.n*100)+"%":"–";
+  $("#stTotal").textContent=Object.values(state.log).reduce((a,v)=>a+v.n,0);
+  const counts={new:0,learning:0,review:0};
+  CARDS.forEach(c=>{const cs=state.cards[c.id];
+    counts[!cs?"new":(cs.state==="review"?"review":"learning")]++;});
+  $("#stKnown").textContent=counts.review;
+  // 7日バー
+  const bars=[];let max=1;const days=[];
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);
+    const k=d.toISOString().slice(0,10);const n=(state.log[k]||{}).n||0;
+    max=Math.max(max,n);days.push([d.getDate(),n]);}
+  $("#weekBars").innerHTML=days.map(([lbl,n])=>
+    `<div class="bar-col"><div class="bar" style="height:${n/max*100}%"></div><small>${lbl}</small></div>`).join("");
+  // 習得状況バー
+  const total=CARDS.length;
+  $("#stateRow").innerHTML=
+    `<div style="width:${counts.new/total*100}%;background:var(--line)"></div>
+     <div style="width:${counts.learning/total*100}%;background:var(--hard)"></div>
+     <div style="width:${counts.review/total*100}%;background:var(--ok)"></div>`;
+  // ヒートマップ 35日
+  let cells="";
+  for(let i=34;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);
+    const n=(state.log[d.toISOString().slice(0,10)]||{}).n||0;
+    const lv=n===0?"":n<5?"h1":n<15?"h2":n<30?"h3":"h4";
+    cells+=`<div class="heat-cell ${lv}" title="${d.getMonth()+1}/${d.getDate()}: ${n}回"></div>`;}
+  $("#heatGrid").innerHTML=cells;
+}
+
+/* ================= 単語帳画面 ================= */
+function renderList(){
+  const q=($("#searchBox").value||"").toLowerCase();
+  $("#wordList").innerHTML=CARDS
+    .filter(c=>!q||c.word.includes(q)||c.ja.includes(q))
+    .map(c=>{const cs=state.cards[c.id];
+      const st=!cs?["未着手","b-new"]:(cs.state==="review"?["復習","b-review"]:["学習中","b-learn"]);
+      const due=cs?new Date(cs.due):null;
+      const dueTxt=cs?(cs.due<=Date.now()?"期日到来":`${due.getMonth()+1}/${due.getDate()}`):"";
+      return `<div class="word-item">
+        <div class="wi-emoji">${c.emoji.slice(0,2)}</div>
+        <div class="wi-main"><div class="wi-word">${c.word}</div>
+        <div class="wi-mean">${c.ja}</div></div>
+        <div style="text-align:right"><span class="badge ${st[1]}">${st[0]}</span>
+        <div style="font-size:10px;color:var(--ink-soft);margin-top:3px">${dueTxt}</div></div>
+      </div>`;}).join("")||`<p style="text-align:center;color:var(--ink-soft);font-size:13px;margin-top:30px">該当する単語がありません</p>`;
+}
+
+/* ================= タブ切替・初期化 ================= */
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  $("#scr-"+b.dataset.scr).classList.add("active");
+  if(b.dataset.scr==="stats")renderStats();
+  if(b.dataset.scr==="list")renderList();
+}));
+$("#searchBox").addEventListener("input",renderList);
+window.reveal=reveal;window.rate=rate;window.speak=speak;window.restartSession=restartSession;
+
+(async()=>{
+  await loadState();
+  buildQueue();
+  renderHeader();
+  renderStudy();
+  if(typeof speechSynthesis!=="undefined")speechSynthesis.getVoices(); // 音声リスト事前ロード
+})();
+</script>
+</body>
+</html>
