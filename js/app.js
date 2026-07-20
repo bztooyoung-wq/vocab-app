@@ -76,9 +76,8 @@ function renderStudy(){
     const done=state.log[today()]?state.log[today()].n:0;
     const noData=CARDS.length===0;
     area.innerHTML=`<div class="done-box">
-      <div class="big">${noData?"📡":(done?"🎉":"🌅")}</div>
-      <h2>${noData?"単語データを読み込めませんでした":(done?"本日の学習完了!":"今日の学習を始めよう")}</h2>
-      <p>${noData?"オンライン環境で一度アプリを開いてデータを取得してください。":(done?`今日は ${done} 回レビューしました。<br>また明日、期日のカードが待っています。`:"新規カードを読み込みます。")}</p>
+      <div class="big">${noData?"NO SIGNAL":(done?"SIDE COMPLETE":"NEEDLE'S UP")}</div>
+      <p>${noData?"単語データを読み込めませんでした。オンライン環境で一度アプリを開いてください。":(done?`今日は ${done} トラック再生しました。<br>明日の棚には次のセッションが並んでいます。`:"今日のセッションを始めましょう。")}</p>
       <button class="primary-btn" onclick="restartSession()">キューを再確認</button>
       <div class="save-note">${storageOk?"✓ 進捗は自動保存されます":"⚠ この環境では進捗はセッション内のみ保持"}</div>
     </div>`;
@@ -87,63 +86,70 @@ function renderStudy(){
   current=queue[0];revealed=false;
   const cs=state.cards[current.id]||{};
   const isNew=!cs.reps;
+  const trackNo=String((sessionTotal-queue.length)+1).padStart(2,"0");
+  const tagHtml=`<span class="card-tag ${isNew?"new":""}">${isNew?"NEW":"REVIEW"}</span>`;
   const exPair=pickEx(current,cs);          // レビュー回数で例文をローテーション
   const exPlain=plainEn(exPair[0]);
   let front="";
   if(mode==="kinfure"){
     front=`
-      <div class="card-front-extra" style="width:100%;text-align:left">
-        <div class="quiz-ja">${exPair[1]}</div>
+      <div class="card-front-extra">
+        <div class="player-row">
+          <div class="record record--sm" id="record"><div class="tonearm" id="tonearm"></div></div>
+          <div class="trackinfo">
+            <div class="lbl">${tagHtml}&nbsp;SIDE A · TRACK ${trackNo}</div>
+            <div class="quiz-ja">${exPair[1]}</div>
+          </div>
+        </div>
         <div class="quiz-en">${blankEn(exPair[0])}</div>
-        <div style="text-align:center">
-          <button class="speak-btn" onclick="event.stopPropagation();speak('${escQ(exPlain)}')">🔊 例文を聞いて想起</button>
+        <div class="ctrl-row">
+          <button class="ctrl-btn" onclick="event.stopPropagation();speak('${escQ(exPlain)}')">▶ PLAY TRACK</button>
           <button class="hint-btn" id="hintBtn"
-            onclick="event.stopPropagation();this.textContent='💡 ${current.word[0]}... (${current.word.length}文字)'">💡 頭文字ヒント</button>
+            onclick="event.stopPropagation();this.textContent='💡 ${current.word[0]}… (${current.word.length}文字)'">HINT</button>
         </div>
       </div>`;
   }else if(mode==="listen"){
     front=`
       <div class="card-front-extra" style="text-align:center">
-        <div class="listen-icon">🎧</div>
-        <div class="listen-note">音声を聞いて、<br>キーワードとその意味を思い出してください</div>
-        <button class="speak-btn" onclick="event.stopPropagation();speak('${escQ(exPlain)}')">🔊 もう一度聞く</button>
+        <div class="lbl" style="margin-bottom:12px">${tagHtml}&nbsp;SIDE A · TRACK ${trackNo}</div>
+        <div class="record record--lg" id="record"><div class="tonearm" id="tonearm"></div></div>
+        <div class="listen-note">針を落として、聞こえてくる単語と<br>その意味を思い出してください</div>
+        <div class="ctrl-row"><button class="ctrl-btn" onclick="event.stopPropagation();speak('${escQ(exPlain)}')">▶ PLAY AGAIN</button></div>
       </div>`;
   }else{
     front=`
-      <div class="card-front-extra">
-        <div class="card-emoji">${current.emoji}</div>
-      </div>
-      <div class="card-front-extra">
-        <div class="card-word">${current.word}</div>
-        <div class="card-pron">${current.pron}</div>
-        <div><span class="card-pos">${current.pos}</span></div>
-        <button class="speak-btn" onclick="event.stopPropagation();speak('${escQ(current.word)}')">🔊 発音を聞く</button>
+      <div class="card-front-extra now-playing">
+        <div class="lbl" style="margin-bottom:12px">${tagHtml}&nbsp;SIDE A · TRACK ${trackNo}</div>
+        <div class="record record--lg" id="record"><div class="tonearm" id="tonearm"></div></div>
+        <div class="now-playing-word">${current.word}</div>
+        <div class="now-playing-pron">${current.pron} · ${current.pos.toUpperCase()} ${current.emoji}</div>
+        <div class="ctrl-row"><button class="ctrl-btn" onclick="event.stopPropagation();speak('${escQ(current.word)}')">▶ PLAY TRACK</button></div>
       </div>`;
   }
   area.innerHTML=`
-    <div class="flashcard" id="fc" onclick="reveal()">
-      <div class="card-tag ${isNew?"new":""}">${isNew?"NEW":"REVIEW"}</div>
+    <div class="sleeve" id="fc" onclick="reveal()">
       ${front}
       <div class="card-back">
-        <div class="answer-word">${current.word}</div>
-        <div class="answer-pron">${current.pron} · ${current.pos} <span style="margin-left:4px">${current.emoji}</span></div>
-        <div class="meaning-ja" style="text-align:center;border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:14px">${current.ja}</div>
-        <div class="meaning-en">${current.en}</div>
-        <div class="sect">例文</div>
-        ${current.ex.map(e=>`<div class="example"><div class="en">${e[0]}
-          <button class="speak-btn" style="padding:2px 10px;font-size:11px;margin:0 0 0 6px"
-           onclick="event.stopPropagation();speak('${e[0].replace(/<[^>]+>/g,"").replace(/'/g,"\\'")}')">🔊</button></div>
-          <div class="ja">${e[1]}</div></div>`).join("")}
-        <div class="sect">類義語</div>
+        <div class="big-word">${current.word}</div>
+        <div class="big-pron">${current.pron} · ${current.pos.toUpperCase()} <span style="margin-left:4px">${current.emoji}</span></div>
+        <div class="readout">
+          <div class="k">TITLE (JA)</div><div class="v jp">${current.ja}</div>
+          <div class="k">LINER NOTES</div><div class="v sub">${current.en}</div>
+        </div>
+        <div class="sect">TRACKLIST</div>
+        ${current.ex.map((e,i)=>`<div class="example"><div class="no">A${i+1}</div><div style="flex:1"><div class="en">${e[0]}
+          <button class="speak-mini" onclick="event.stopPropagation();speak('${e[0].replace(/<[^>]+>/g,"").replace(/'/g,"\\'")}')">▶</button></div>
+          <div class="ja">${e[1]}</div></div></div>`).join("")}
+        <div class="sect">ALSO PRESSED AS</div>
         <div class="chips">${current.syn.map(s=>`<span class="chip">${s}</span>`).join("")}</div>
       </div>
-      <div class="tap-hint" id="tapHint">${mode==="card"?"タップして意味を表示":"思い出したらタップして答え合わせ"}</div>
+      <div class="tap-hint" id="tapHint">${mode==="card"?"タップしてライナーノーツを表示":"思い出したらタップして針を落とす"}</div>
     </div>
     <div class="rating" id="rating">
-      <button class="rate-btn rate-again" onclick="rate(1)"><b>もう一度</b><small>${previewIvl(cs,1)}</small></button>
-      <button class="rate-btn rate-hard" onclick="rate(2)"><b>難しい</b><small>${previewIvl(cs,2)}</small></button>
-      <button class="rate-btn rate-good" onclick="rate(3)"><b>普通</b><small>${previewIvl(cs,3)}</small></button>
-      <button class="rate-btn rate-easy" onclick="rate(4)"><b>簡単</b><small>${previewIvl(cs,4)}</small></button>
+      <button class="rate-btn rate-again" onclick="rate(1)"><b>POOR</b><small>${previewIvl(cs,1)}</small></button>
+      <button class="rate-btn rate-hard" onclick="rate(2)"><b>GOOD</b><small>${previewIvl(cs,2)}</small></button>
+      <button class="rate-btn rate-good" onclick="rate(3)"><b>VG+</b><small>${previewIvl(cs,3)}</small></button>
+      <button class="rate-btn rate-easy" onclick="rate(4)"><b>MINT</b><small>${previewIvl(cs,4)}</small></button>
     </div>`;
   if(mode==="listen")setTimeout(()=>speak(exPlain),350);   // リスニングは自動再生
 }
@@ -152,6 +158,9 @@ function reveal(){
   $("#fc").classList.add("revealed");
   $("#rating").classList.add("show");
   $("#tapHint").style.display="none";
+  const rec=document.getElementById("record"),arm=document.getElementById("tonearm");
+  if(rec)rec.classList.add("playing");
+  if(arm)arm.classList.add("down");
   // 単語 → 例文全文の順で読み上げ(音声で記憶を定着)
   const ex=plainEn(pickEx(current,state.cards[current.id]||{})[0]);
   speak(current.word+". "+ex);
@@ -190,7 +199,7 @@ function renderHeader(){
     if(state.log[k]&&state.log[k].n>0){streak++;d.setDate(d.getDate()-1);}
     else if(k===today()){d.setDate(d.getDate()-1);}   // 今日未学習でも昨日から数える
     else break;}
-  $("#streakBadge").textContent="🔥 "+streak+"日";
+  $("#streakBadge").textContent="◉ "+streak+" SPINS";
 }
 function renderStats(){
   const t=state.log[today()]||{n:0,ok:0};
@@ -211,9 +220,9 @@ function renderStats(){
   // 習得状況バー
   const total=CARDS.length||1;
   $("#stateRow").innerHTML=
-    `<div style="width:${counts.new/total*100}%;background:var(--line)"></div>
-     <div style="width:${counts.learning/total*100}%;background:var(--hard)"></div>
-     <div style="width:${counts.review/total*100}%;background:var(--ok)"></div>`;
+    `<div style="width:${counts.new/total*100}%;background:rgba(232,220,192,.15)"></div>
+     <div style="width:${counts.learning/total*100}%;background:var(--rose)"></div>
+     <div style="width:${counts.review/total*100}%;background:var(--teal)"></div>`;
   // ヒートマップ 35日
   let cells="";
   for(let i=34;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);
@@ -229,7 +238,7 @@ function renderList(){
   $("#wordList").innerHTML=CARDS
     .filter(c=>!q||c.word.includes(q)||c.ja.includes(q))
     .map(c=>{const cs=state.cards[c.id];
-      const st=!cs?["未着手","b-new"]:(cs.state==="review"?["復習","b-review"]:["学習中","b-learn"]);
+      const st=!cs?["WISHLIST","b-new"]:(cs.state==="review"?["SHELVED","b-review"]:["IN CRATE","b-learn"]);
       const due=cs?new Date(cs.due):null;
       const dueTxt=cs?(cs.due<=Date.now()?"期日到来":`${due.getMonth()+1}/${due.getDate()}`):"";
       return `<div class="word-item">
@@ -237,8 +246,8 @@ function renderList(){
         <div class="wi-main"><div class="wi-word">${c.word}</div>
         <div class="wi-mean">${c.ja}</div></div>
         <div style="text-align:right"><span class="badge ${st[1]}">${st[0]}</span>
-        <div style="font-size:10px;color:var(--ink-soft);margin-top:3px">${dueTxt}</div></div>
-      </div>`;}).join("")||`<p style="text-align:center;color:var(--ink-soft);font-size:13px;margin-top:30px">該当する単語がありません</p>`;
+        <div style="font-size:10px;color:var(--label-dim);margin-top:3px">${dueTxt}</div></div>
+      </div>`;}).join("")||`<p style="text-align:center;color:var(--label-dim);font-size:13px;margin-top:30px">該当する単語がありません</p>`;
 }
 
 /* ================= タブ切替・初期化 ================= */

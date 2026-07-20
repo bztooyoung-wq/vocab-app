@@ -21,6 +21,7 @@ vocab-app/
 │   ├── db.js                  ← IndexedDBラッパー(学習進捗の永続化)
 │   └── app.js                 ← 画面描画・学習フロー・状態管理
 ├── icons/                     ← PWAアイコン(icon.svg / icon-maskable.svg が生成元)
+├── fonts/                     ← 自己ホストのWebフォント(Alfa Slab One / Overpass Mono)
 ├── input/
 │   └── word_list.txt         ← 生成対象の単語リスト(1行1単語)
 ├── data/

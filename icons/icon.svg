@@ -1,6 +1,11 @@
 <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="96" fill="#2D5DA1"/>
-  <path d="M256 168 C256 156 246 146 234 146 L146 146 C128 146 114 160 114 178 L114 344 C114 354 124 361 133 357 C163 344 202 339 238 346 C248 348 256 340 256 330 Z" fill="#FFFFFF"/>
-  <path d="M256 168 C256 156 266 146 278 146 L366 146 C384 146 398 160 398 178 L398 344 C398 354 388 361 379 357 C349 344 310 339 274 346 C264 348 256 340 256 330 Z" fill="#FFFFFF"/>
-  <line x1="256" y1="168" x2="256" y2="330" stroke="#2D5DA1" stroke-width="6"/>
+  <rect width="512" height="512" rx="96" fill="#5B1F26"/>
+  <circle cx="256" cy="256" r="190" fill="#141212"/>
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#2A2624" stroke-width="3"/>
+  <circle cx="256" cy="256" r="168" fill="none" stroke="#2A2624" stroke-width="3"/>
+  <circle cx="256" cy="256" r="146" fill="none" stroke="#2A2624" stroke-width="3"/>
+  <circle cx="256" cy="256" r="124" fill="none" stroke="#2A2624" stroke-width="3"/>
+  <circle cx="256" cy="256" r="102" fill="none" stroke="#2A2624" stroke-width="3"/>
+  <circle cx="256" cy="256" r="78" fill="#C9A227"/>
+  <circle cx="256" cy="256" r="14" fill="#5B1F26"/>
 </svg>

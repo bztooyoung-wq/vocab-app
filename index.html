@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>GOI — TOEIC単語トレーナー</title>
+<title>GOI — Vinyl Sessions</title>
 <meta name="description" content="TOEIC 900を目標としたFSRSベースの英単語学習PWA">
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#2D5DA1">
+<meta name="theme-color" content="#5B1F26">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GOI">
@@ -17,8 +17,8 @@
 <body>
 <div id="app">
   <header>
-    <div class="brand">GOI<span>.</span><small>TOEIC 900</small></div>
-    <div class="streak" id="streakBadge">🔥 0日</div>
+    <div class="brand">GOI<small>VINYL SESSIONS · TOEIC 900</small></div>
+    <div class="streak" id="streakBadge">◉ 0 SPINS</div>
   </header>
 
   <main>
@@ -39,41 +39,50 @@
     <!-- 統計 -->
     <section class="screen" id="scr-stats">
       <div class="stat-grid">
-        <div class="stat-card"><div class="num" id="stToday">0</div><div class="lbl">今日の学習</div></div>
-        <div class="stat-card"><div class="num" id="stAcc">–</div><div class="lbl">今日の正答率</div></div>
-        <div class="stat-card"><div class="num" id="stTotal">0</div><div class="lbl">累計レビュー</div></div>
-        <div class="stat-card"><div class="num" id="stKnown">0</div><div class="lbl">復習フェーズの語</div></div>
+        <div class="stat-card"><div class="num" id="stToday">0</div><div class="lbl">TODAY'S SPINS</div></div>
+        <div class="stat-card"><div class="num" id="stAcc">–</div><div class="lbl">HIT RATE</div></div>
+        <div class="stat-card"><div class="num" id="stTotal">0</div><div class="lbl">TOTAL PLAYS</div></div>
+        <div class="stat-card"><div class="num" id="stKnown">0</div><div class="lbl">IN ROTATION</div></div>
       </div>
-      <div class="panel">
-        <h3>直近7日のレビュー数</h3>
+      <div class="panel-box">
+        <h3>WEEKLY CHART RUN</h3>
         <div class="bars" id="weekBars"></div>
       </div>
-      <div class="panel">
-        <h3>習得状況</h3>
+      <div class="panel-box">
+        <h3>COLLECTION STATUS</h3>
         <div class="state-row" id="stateRow"></div>
         <div class="state-legend">
-          <span><span class="dot" style="background:var(--line)"></span>未着手</span>
-          <span><span class="dot" style="background:var(--hard)"></span>学習中</span>
-          <span><span class="dot" style="background:var(--ok)"></span>復習</span>
+          <span><span class="dot" style="background:rgba(232,220,192,.15)"></span>WISHLIST</span>
+          <span><span class="dot" style="background:var(--rose)"></span>IN THE CRATE</span>
+          <span><span class="dot" style="background:var(--teal)"></span>SHELVED</span>
         </div>
       </div>
-      <div class="panel">
-        <h3>学習ヒートマップ(5週)</h3>
+      <div class="panel-box">
+        <h3>LISTENING LOG (5 WEEKS)</h3>
         <div class="heat" id="heatGrid"></div>
       </div>
     </section>
 
     <!-- 単語帳 -->
     <section class="screen" id="scr-list">
-      <input class="search" id="searchBox" type="search" placeholder="単語・意味で検索">
+      <input class="search" id="searchBox" type="search" placeholder="SEARCH THE CRATE">
       <div id="wordList"></div>
     </section>
   </main>
 
   <nav>
-    <button class="tab active" data-scr="study"><span class="ico">📖</span><small>学習</small></button>
-    <button class="tab" data-scr="stats"><span class="ico">📊</span><small>統計</small></button>
-    <button class="tab" data-scr="list"><span class="ico">🗂️</span><small>単語帳</small></button>
+    <button class="tab active" data-scr="study">
+      <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/></svg></span>
+      <small>学習</small>
+    </button>
+    <button class="tab" data-scr="stats">
+      <span class="ico"><svg viewBox="0 0 24 24"><path d="M5 19V11M12 19V5M19 19V14" stroke-linecap="round"/></svg></span>
+      <small>統計</small>
+    </button>
+    <button class="tab" data-scr="list">
+      <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 8 L8 4 H16 L20 8 V19 H4 Z" stroke-linejoin="round"/><path d="M4 8 H20 M12 8 V19"/></svg></span>
+      <small>単語帳</small>
+    </button>
   </nav>
 </div>
 

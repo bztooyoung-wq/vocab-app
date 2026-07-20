@@ -1,5 +1,5 @@
 /* GOI — オフライン対応 Service Worker */
-const SHELL_CACHE="goi-shell-v1";
+const SHELL_CACHE="goi-shell-v2";
 const DATA_CACHE="goi-data-v1";
 const SHELL_ASSETS=[
   "./",
@@ -11,7 +11,9 @@ const SHELL_ASSETS=[
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
-  "./icons/icon-maskable.png"
+  "./icons/icon-maskable.png",
+  "./fonts/alfa-slab-one-400.woff2",
+  "./fonts/overpass-mono-400.woff2"
 ];
 
 self.addEventListener("install",(event)=>{
