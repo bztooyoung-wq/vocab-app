@@ -1,5 +1,5 @@
 /* GOI — オフライン対応 Service Worker */
-const SHELL_CACHE="goi-shell-v2";
+const SHELL_CACHE="goi-shell-v3";
 const DATA_CACHE="goi-data-v1";
 const SHELL_ASSETS=[
   "./",
@@ -7,6 +7,7 @@ const SHELL_ASSETS=[
   "./css/style.css",
   "./js/fsrs.js",
   "./js/db.js",
+  "./js/highlight.js",
   "./js/app.js",
   "./manifest.json",
   "./icons/icon-192.png",
@@ -19,7 +20,8 @@ const SHELL_ASSETS=[
 self.addEventListener("install",(event)=>{
   event.waitUntil(
     caches.open(SHELL_CACHE)
-      .then((cache)=>cache.addAll(SHELL_ASSETS))
+      // cache:"reload" で中間HTTPキャッシュを迂回し、必ず最新のシェル資産を取り込む
+      .then((cache)=>cache.addAll(SHELL_ASSETS.map((u)=>new Request(u,{cache:"reload"}))))
       .then(()=>self.skipWaiting())
   );
 });

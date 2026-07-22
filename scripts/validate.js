@@ -5,6 +5,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const { highlightWord } = require("../js/highlight.js");
 
 const FILE = path.join(__dirname, "..", "data", "words.json");
 const POS = ["noun", "verb", "adjective", "adverb", "phrase"];
@@ -64,9 +65,9 @@ cards.forEach((c, i) => {
       if (!ex || typeof ex.en !== "string" || typeof ex.ja !== "string") {
         err(i, id, `examples[${j}] に en/ja が必要`);
       } else if (typeof c.word === "string") {
-        const stem = c.word.toLowerCase().split(" ")[0].slice(0, 5);
-        if (!ex.en.toLowerCase().includes(stem)) {
-          err(i, id, `examples[${j}] に対象単語(語幹 "${stem}")が含まれていない可能性`);
+        // アプリ本体(js/highlight.js)と同一ロジックで穴埋め生成可否を判定する
+        if (!highlightWord(ex.en, c.word).matched) {
+          err(i, id, `examples[${j}] で対象単語をハイライトできない(金フレ式の穴埋め生成が失敗する)`);
         }
       }
     });
